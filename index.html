@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NBA Game Outcome Predictor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-center font-sans p-5">
+  <h1 class="mb-10 text-4xl font-bold text-gray-800">NBA Game Outcome Predictor</h1>
+  <form method="POST">
+    <!-- Team selection with labels, buttons, and win probability texts in vertical groups -->
+    <div class="flex justify-center mb-3 space-x-8">
+      <!-- AWAY column -->
+      <div class="flex flex-col items-center">
+        <div class="text-2xl font-bold text-gray-800 mb-2">AWAY</div>
+        <div class="relative">
+          <button type="button" id="awayBtn" class="team-button text-2xl p-5 w-[300px] h-[100px] cursor-pointer rounded-lg bg-blue-500 text-white">
+            {% if selected_away %}
+              <img src="{{ team_logos[selected_away] }}" class="inline-block h-[30px] w-[30px] mr-2.5" alt="{{ selected_away }} logo"> {{ selected_away }}
+            {% else %}
+              ?
+            {% endif %}
+          </button>
+          <div id="awayDropdown" class="hidden absolute left-1/2 transform -translate-x-1/2 mt-2 border border-gray-300 bg-white z-50 w-[320px] max-h-[400px] overflow-y-auto rounded-md">
+            {% for team in team_options %}
+              <div class="p-2.5 flex items-center cursor-pointer hover:bg-gray-200" onclick="selectTeam('away', '{{ team }}', '{{ team_logos[team] }}')">
+                <img src="{{ team_logos[team] }}" class="h-[30px] w-[30px] mr-2.5" alt="{{ team }} logo">
+                {{ team }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div id="awayProbability" class="w-[300px] text-xl text-center text-gray-800 mt-2">
+          {% if probability_away is not none %}{{ selected_away }} Win Percentage: {{ probability_away }}%{% endif %}
+        </div>
+      </div>
+      <!-- HOME column -->
+      <div class="flex flex-col items-center">
+        <div class="text-2xl font-bold text-gray-800 mb-2">HOME</div>
+        <div class="relative">
+          <button type="button" id="homeBtn" class="team-button text-2xl p-5 w-[300px] h-[100px] cursor-pointer rounded-lg bg-blue-500 text-white">
+            {% if selected_home %}
+              <img src="{{ team_logos[selected_home] }}" class="inline-block h-[30px] w-[30px] mr-2.5" alt="{{ selected_home }} logo"> {{ selected_home }}
+            {% else %}
+              ?
+            {% endif %}
+          </button>
+          <div id="homeDropdown" class="hidden absolute left-1/2 transform -translate-x-1/2 mt-2 border border-gray-300 bg-white z-50 w-[320px] max-h-[400px] overflow-y-auto rounded-md">
+            {% for team in team_options %}
+              <div class="p-2.5 flex items-center cursor-pointer hover:bg-gray-200" onclick="selectTeam('home', '{{ team }}', '{{ team_logos[team] }}')">
+                <img src="{{ team_logos[team] }}" class="h-[30px] w-[30px] mr-2.5" alt="{{ team }} logo">
+                {{ team }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div id="homeProbability" class="w-[300px] text-xl text-center text-gray-800 mt-2">
+          {% if probability_home is not none %}{{ selected_home }} Win Percentage: {{ probability_home }}%{% endif %}
+        </div>
+      </div>
+    </div>
+    <!-- Date input with "Today" button -->
+    <label for="game_date" class="block text-lg mb-2 text-gray-800">Upcoming Game Date:</label>
+    <input type="date" name="game_date" id="game_date" required class="text-lg p-2.5 rounded-md border border-gray-300">
+    <button type="button" id="todayBtn" class="text-xl px-5 py-2.5 rounded-md bg-blue-500 text-white ml-2">Today</button>
+    <br><br>
+    <!-- Hidden inputs for selected teams -->
+    <input type="hidden" name="home_team" id="home_team_input" value="{% if selected_home %}{{ selected_home }}{% endif %}">
+    <input type="hidden" name="away_team" id="away_team_input" value="{% if selected_away %}{{ selected_away }}{% endif %}">
+    <!-- Predict Outcome button -->
+    <input type="submit" value="Predict Outcome" class="text-xl px-5 py-2.5 rounded-md bg-blue-500 text-white mt-5">
+  </form>
+  
+  <!-- View Today's Game Predictions button (outside the form) -->
+  <div class="mt-5">
+    <button type="button" onclick="window.location.href='/today'" class="text-xl px-5 py-2.5 rounded-md bg-blue-500 text-white">
+      View Today's Game Predictions
+    </button>
+  </div>
+  
+  {% if prediction %}
+  <div class="mt-5">
+    <h2 class="text-3xl font-bold mb-3">Prediction:</h2>
+    <p class="text-xl">{{ prediction }}</p>
+  </div>
+  {% endif %}
+  
+  <script>
+    // Toggle dropdown display for team buttons
+    document.getElementById('homeBtn').onclick = function(e) {
+      e.stopPropagation();
+      var dropdown = document.getElementById('homeDropdown');
+      dropdown.classList.toggle('hidden');
+    };
+    document.getElementById('awayBtn').onclick = function(e) {
+      e.stopPropagation();
+      var dropdown = document.getElementById('awayDropdown');
+      dropdown.classList.toggle('hidden');
+    };
+
+    // Function to update team button when a team is selected
+    function selectTeam(side, teamName, logoUrl) {
+      if(side === 'home'){
+        document.getElementById('homeBtn').innerHTML = '<img src="'+logoUrl+'" class="inline-block h-[30px] w-[30px] mr-2.5" alt="'+teamName+' logo"> ' + teamName;
+        document.getElementById('homeDropdown').classList.add('hidden');
+        document.getElementById('home_team_input').value = teamName;
+      } else {
+        document.getElementById('awayBtn').innerHTML = '<img src="'+logoUrl+'" class="inline-block h-[30px] w-[30px] mr-2.5" alt="'+teamName+' logo"> ' + teamName;
+        document.getElementById('awayDropdown').classList.add('hidden');
+        document.getElementById('away_team_input').value = teamName;
+      }
+    }
+
+    // Hide dropdowns when clicking outside
+    window.onclick = function(event) {
+      if (!event.target.closest('.team-button')) {
+        document.getElementById('homeDropdown').classList.add('hidden');
+        document.getElementById('awayDropdown').classList.add('hidden');
+      }
+    };
+
+    // "Today" button sets the date input to today's date in America/Chicago timezone
+    document.getElementById('todayBtn').onclick = function() {
+      var today = new Date();
+      var options = { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' };
+      var formatter = new Intl.DateTimeFormat('en-US', options);
+      var parts = formatter.formatToParts(today);
+      var year = parts.find(part => part.type === 'year').value;
+      var month = parts.find(part => part.type === 'month').value;
+      var day = parts.find(part => part.type === 'day').value;
+      var localDate = `${year}-${month}-${day}`;
+      document.getElementById('game_date').value = localDate;
+    };
+  </script>
+</body>
+</html>

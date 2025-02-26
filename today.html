@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Today's NBA Predictions</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-center font-sans p-5">
+  <h1 class="mb-10 text-4xl font-bold text-gray-800">Today's NBA Predictions - {{ today_date }}</h1>
+  {% if predictions %}
+    {% for game in predictions %}
+      <div class="mb-5 max-w-xl mx-auto">
+        {% if game.error %}
+          <p class="text-xl text-red-500">
+            {{ game.error }} for {{ game.away_team }} @ {{ game.home_team }}
+          </p>
+        {% else %}
+          <div class="flex items-center justify-center gap-x-8">
+            <!-- Away team logo element -->
+            <div class="w-[12.5%]">
+              <img src="{{ team_logos[game.away_team] }}" class="h-20 w-20 mx-auto" alt="{{ game.away_team }} logo">
+            </div>
+            <!-- Prediction text element (wider) -->
+            <div class="w-[75%]">
+              <p class="text-2xl font-bold">{{ game.away_team }} @ {{ game.home_team }}</p>
+              <p class="text-xl">Prediction: {{ game.prediction }}</p>
+              <p class="text-xl">{{ game.away_team }} Win Percentage: {{ game.away_probability }}%</p>
+              <p class="text-xl">{{ game.home_team }} Win Percentage: {{ game.home_probability }}%</p>
+            </div>
+            <!-- Home team logo element -->
+            <div class="w-[12.5%]">
+              <img src="{{ team_logos[game.home_team] }}" class="h-20 w-20 mx-auto" alt="{{ game.home_team }} logo">
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-xl">No games scheduled for today.</p>
+  {% endif %}
+</body>
+</html>
